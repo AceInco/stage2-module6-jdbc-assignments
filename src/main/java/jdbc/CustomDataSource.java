@@ -5,6 +5,7 @@ import javax.sql.DataSource;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -22,51 +23,41 @@ public class CustomDataSource implements DataSource {
     private final String name;
     private final String password;
 
-    // Private constructor to initialize the data source
     private CustomDataSource(String driver, String url, String name, String password) {
         this.driver = driver;
         this.url = url;
         this.name = name;
         this.password = password;
-
-        // You may perform additional initialization here if needed
     }
 
     // Create a new instance of CustomDataSource (thread-safe)
-    public static CustomDataSource getInstance(String driver, String url, String name, String password) {
+    public static CustomDataSource getInstance() {
         if (instance == null) {
-            synchronized (CustomDataSource.class) {
-                if (instance == null) {
-                    instance = new CustomDataSource(driver, url, name, password);
-                }
+            Properties properties = new Properties();
+            try {
+                properties.load(CustomConnector.class.getClassLoader().getResourceAsStream("app.properties"));
+            } catch (IOException e) {
+                throw new RuntimeException(e);
             }
+            String driver = properties.getProperty("postgres.driver");
+            String url = properties.getProperty("postgres.url");
+            String name = properties.getProperty("postgres.name");
+            String password = properties.getProperty("postgres.password");
+
+            return new CustomDataSource(driver,url, name, password);
         }
         return instance;
-    }
 
-    // Implementation of DataSource interface methods
+    }
 
     @Override
     public Connection getConnection() throws SQLException {
-        return getConnection(name, password);
+        return new CustomConnector().getConnection(url, name, password);
     }
 
     @Override
-    public Connection getConnection(String username, String userPassword) throws SQLException {
-        try {
-            // Load the JDBC driver
-            Class.forName(driver);
-        } catch (ClassNotFoundException e) {
-            throw new SQLException("Failed to load JDBC driver: " + driver, e);
-        }
-
-        // Set up properties for the connection (if needed)
-        Properties properties = new Properties();
-        properties.setProperty("user", username);
-        properties.setProperty("password", userPassword);
-
-        // Establish a connection to the database
-        return DriverManager.getConnection(url, properties);
+    public Connection getConnection(String username, String password) throws SQLException {
+            return new CustomConnector().getConnection(url, username, password);
     }
 
     @Override
@@ -103,8 +94,4 @@ public class CustomDataSource implements DataSource {
     public boolean isWrapperFor(Class<?> iface) throws SQLException {
         return false;
     }
-
-    // Other DataSource interface methods (not shown here)
-
-    // You can also add methods for custom behavior or configuration as needed
 }

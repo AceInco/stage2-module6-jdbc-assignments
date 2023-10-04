@@ -20,26 +20,21 @@ public class SimpleJDBCRepository {
     private PreparedStatement ps = null;
     private Statement st = null;
 
-    private static final String createUserSQL = "INSERT INTO myusers (firstname, lastname, age) VALUES (?, ?, ?)";
+    private static final String createUserSQL = "INSERT INTO MYUSERS (firstname, lastname, age) VALUES (?, ?, ?)";
     private static final String updateUserSQL = "UPDATE myusers SET firstname = ?, lastname = ?, age = ? WHERE id = ?";
-    private static final String deleteUserSQL = "DELETE id FROM myusers WHERE id = ?";
+    private static final String deleteUserSQL = "DELETE FROM myusers WHERE id = ?";
     private static final String findUserByIdSQL = "SELECT * FROM myusers WHERE id = ?";
     private static final String findUserByNameSQL = "SELECT * FROM myusers WHERE firstname = ?";
     private static final String findAllUserSQL = "SELECT * FROM myusers";
 
-    public SimpleJDBCRepository() {
+    public SimpleJDBCRepository() throws SQLException{
         // Initialize the connection using CustomDataSource or CustomConnector
-        try {
-            CustomConnector customConnector = new CustomConnector();
-            connection = customConnector.getConnection("jdbc:postgresql://localhost:5432/postgres", "postgres", "1234");
-        } catch (SQLException | IOException e) {
-            e.printStackTrace();
-        }
+        connection = new CustomConnector().getConnection("jdbc:h2:mem:myfirstdb");
     }
 
     public Long createUser(User user) {
         try {
-            ps = connection.prepareStatement(createUserSQL, Statement.RETURN_GENERATED_KEYS);
+            ps = connection.prepareStatement(createUserSQL);
             ps.setString(1, user.getFirstName());
             ps.setString(2, user.getLastName());
             ps.setInt(3, user.getAge());
@@ -63,7 +58,7 @@ public class SimpleJDBCRepository {
             closeResources();
         }
 
-        return null;
+        return user.getId();
     }
 
     public User findUserById(Long userId) {
@@ -168,5 +163,10 @@ public class SimpleJDBCRepository {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    public static void main(String[] args) throws SQLException {
+        SimpleJDBCRepository rep = new SimpleJDBCRepository();
+        rep.createUser(new User(30L, "Misha", "Loh", 32));
     }
 }
