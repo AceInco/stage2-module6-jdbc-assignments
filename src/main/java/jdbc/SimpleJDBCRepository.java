@@ -152,7 +152,7 @@ public class SimpleJDBCRepository {
                 .age(resultSet.getInt("age"))
                 .build();
     }
-    private void deleteUser(Long userId) {
+    public void deleteUser(Long userId) {
         //  code
     }
 
