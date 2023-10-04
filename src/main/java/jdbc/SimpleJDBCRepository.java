@@ -20,9 +20,9 @@ public class SimpleJDBCRepository {
     private PreparedStatement ps = null;
     private Statement st = null;
 
-    private static final String createUserSQL = "INSERT INTO MYUSERS (firstname, lastname, age) VALUES (?, ?, ?)";
+    private static final String createUserSQL = "INSERT INTO myusers (firstname, lastname, age) VALUES (?, ?, ?)";
     private static final String updateUserSQL = "UPDATE myusers SET firstname = ?, lastname = ?, age = ? WHERE id = ?";
-    private static final String deleteUserSQL = "DELETE FROM myusers WHERE id = ?";
+    private static final String deleteUserSQL = "DELETE FROM MYUSERS WHERE id = ?";
     private static final String findUserByIdSQL = "SELECT * FROM myusers WHERE id = ?";
     private static final String findUserByNameSQL = "SELECT * FROM myusers WHERE firstname = ?";
     private static final String findAllUserSQL = "SELECT * FROM myusers";
@@ -35,6 +35,7 @@ public class SimpleJDBCRepository {
     public Long createUser(User user) {
         try {
             ps = connection.prepareStatement(createUserSQL);
+
             ps.setString(1, user.getFirstName());
             ps.setString(2, user.getLastName());
             ps.setInt(3, user.getAge());
@@ -150,6 +151,9 @@ public class SimpleJDBCRepository {
                 .lastName(resultSet.getString("last_name"))
                 .age(resultSet.getInt("age"))
                 .build();
+    }
+    private void deleteUser(Long userId) {
+        //  code
     }
 
     private void closeResources() {
